@@ -1,20 +1,38 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+  <q-layout view="hHh lpR fFf" class="bg-black">
+    <q-header class="bg-dark text-amber" elevated>
       <q-toolbar>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-
-        <q-toolbar-title> Quasar App </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
+        <q-toolbar-title class="text-weight-bolder tracking-wide"> SI-NANGKRING </q-toolbar-title>
+        <q-btn flat dense round icon="account_circle" @click="$router.push('/login')" />
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list>
-        <q-item-label header> Essential Links </q-item-label>
-
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      class="bg-dark text-white"
+      :width="280"
+      bordered
+      style="border-color: rgba(255, 193, 7, 0.2)"
+    >
+      <div class="q-pa-md text-center q-pb-lg">
+        <q-avatar size="80px" class="q-mb-sm shadow-5">
+          <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
+        </q-avatar>
+        <div class="text-weight-bold text-amber text-h6">Admin Angkringan</div>
+        <div class="text-caption text-grey-5">admin@angkringan.id</div>
+      </div>
+      <q-separator dark />
+      <q-list class="q-mt-sm">
+        <q-item clickable v-ripple class="text-red-4" @click="$router.push('/login')">
+          <q-item-section avatar>
+            <q-icon name="logout" color="red-4" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-bold">Logout</q-item-label>
+          </q-item-section>
+        </q-item>
       </q-list>
     </q-drawer>
 
@@ -26,52 +44,6 @@
 
 <script setup>
 import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
-
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
-  },
-]
 
 const leftDrawerOpen = ref(false)
 
@@ -79,3 +51,13 @@ function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
+
+<style scoped>
+.tracking-wide {
+  letter-spacing: 2px;
+}
+.hover-amber:hover {
+  color: #ffc107 !important;
+  background: rgba(255, 193, 7, 0.1);
+}
+</style>

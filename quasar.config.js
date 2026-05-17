@@ -11,7 +11,7 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: [],
+    boot: ['axios', 'a2hs', 'pwa-update'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -37,7 +37,7 @@ export default defineConfig((/* ctx */) => {
         node: 'node22',
       },
 
-      vueRouterMode: 'hash', // available values: 'hash', 'history'
+      vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
       // vueOptionsAPI: false,
@@ -91,7 +91,7 @@ export default defineConfig((/* ctx */) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations
@@ -137,7 +137,35 @@ export default defineConfig((/* ctx */) => {
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
     pwa: {
-      workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+      // workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
+      workboxMode: 'InjectManifest',
+      workboxOptions: {
+        globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+        manifestTransforms: [
+          async (entries) => {
+            const unique = entries.filter(
+              (entry, index, arr) => arr.findIndex((e) => e.url === entry.url) === index,
+            )
+            return { manifest: unique }
+          },
+        ],
+        runtimeCaching: [
+          {
+            urlPattern: /\/.*/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pages-cache' },
+          },
+        ],
+      }, // optional
+      chainWebpackCustomSW(config) {
+        config.entry('custom-service-worker').add('./src-pwa/custom-service-worker.js')
+      },
+      manifestFilename: 'manifest.json',
+      extendManifestJson: (json) => json,
+      fallback: {
+        html: 'index.html',
+      },
+
       // swFilename: 'sw.js',
       // manifestFilename: 'manifest.json',
       // extendManifestJson (json) {},
