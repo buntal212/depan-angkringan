@@ -2,7 +2,7 @@ import { boot } from 'quasar/wrappers'
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8197/api',
+  baseURL: import.meta.env.VITE_API_URL,
 })
 
 // Override get agar bisa tulis api.get(url, params) langsung
