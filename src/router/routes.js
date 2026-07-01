@@ -10,6 +10,11 @@ const routes = [
         component: () => import('pages/Master/MasterAngkringanPage.vue'),
       },
       { path: 'master-menu', component: () => import('pages/Master/MasterMenuPage.vue') },
+      {
+        path: 'penjualan',
+        // component: () => import('pages/Penjualan/IndexPage.vue'),
+        component: () => import('pages/Penjualan/IndexPage.vue'),
+      },
     ],
   },
   {

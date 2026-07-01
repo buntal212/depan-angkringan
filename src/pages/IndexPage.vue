@@ -35,7 +35,7 @@
       <div class="text-center animate-fade-in">
         <q-spinner-puff color="amber" size="8rem" class="q-mb-lg glow-spinner" />
         <div class="text-h5 text-amber text-weight-bolder animate-pulse tracking-wide glow-text">
-          MEMPERSIAPKAN MEJA...
+          MEMPERSIAPKAN DATA...
         </div>
         <div class="text-subtitle1 text-grey-4 q-mt-sm">Memuat Menu Angkringan Spesial Untukmu</div>
       </div>
