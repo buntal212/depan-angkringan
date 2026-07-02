@@ -36,19 +36,16 @@
               outlined
               rounded
               dense
+              debounce="500"
               label="Cari transaksi..."
+              @update:model-value="onSearch"
               @keyup.enter="onSearch"
             >
               <template #prepend>
                 <q-icon name="search" color="amber" />
               </template>
               <template v-if="store.paramsList.search" #append>
-                <q-icon
-                  name="close"
-                  color="grey-5"
-                  class="cursor-pointer"
-                  @click="store.paramsList.search = ''"
-                />
+                <q-icon name="close" color="grey-5" class="cursor-pointer" @click="clearSearch" />
               </template>
             </q-input>
           </div>
@@ -102,8 +99,19 @@
                 <q-icon name="event" color="amber" />
               </template>
 
-              <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                <q-date v-model="store.paramsList.dateTo" mask="YYYY-MM-DD" color="amber" today-btn>
+              <q-popup-proxy
+                ref="dateToProxy"
+                cover
+                transition-show="scale"
+                transition-hide="scale"
+              >
+                <q-date
+                  v-model="store.paramsList.dateTo"
+                  mask="YYYY-MM-DD"
+                  color="amber"
+                  today-btn
+                  @update:model-value="onDateFromChange"
+                >
                   <div class="row justify-end">
                     <q-btn v-close-popup label="OK" color="amber" text-color="black" flat />
                   </div>
@@ -124,6 +132,7 @@
               dense
               clearable
               label="Pilih Angkringan"
+              @update:model-value="caribyangkringan"
             >
               <template #prepend>
                 <q-icon name="storefront" color="amber" />
@@ -147,146 +156,161 @@
     </q-card>
 
     <!-- LIST -->
-    <div v-if="store.loadingList && store.listPenjualan.length === 0" class="q-col-gutter-md">
-      <q-card v-for="n in 3" :key="n" class="top-card bg-dark q-mb-md" style="border-radius: 16px">
-        <q-card-section>
-          <q-skeleton type="text" width="40%" class="q-mb-sm" />
-          <q-skeleton type="text" width="60%" />
-          <q-skeleton type="text" width="30%" class="q-mt-sm" />
-        </q-card-section>
-      </q-card>
-    </div>
-
-    <div v-else-if="store.listPenjualan.length === 0" class="empty-box">
-      <q-icon name="receipt_long" size="4rem" color="grey-7" />
-      <div class="text-h6 text-grey-6 q-mt-md">Belum ada data penjualan</div>
-    </div>
-
-    <div v-else ref="scrollTargetRef" class="scroll-list">
-      <q-infinite-scroll @load="onLoadPenjualan" :offset="250" :disable="store.doneList">
-        <q-slide-item
-          v-for="item in store.listPenjualan"
-          class="slide-card q-mb-md"
-          :key="item.id"
-          right-color="dark"
-          @left="({ reset }) => onSlideEdit(item, reset)"
-          @right="({ reset }) => onSlideBayar(item, reset)"
-        >
-          <!-- Tombol yang muncul saat swipe -->
-          <template #left>
-            <q-icon name="edit" color="white" size="30px" />
-          </template>
-
-          <!-- Geser ke kanan -->
-          <template #right>
-            <q-icon name="payments" color="white" size="30px" />
-          </template>
-
-          <q-card
-            class="top-card bg-dark text-white q-mb-md"
-            style="border-radius: 16px; overflow: hidden"
-          >
-            <q-card-section>
-              <div class="row items-start no-wrap">
-                <div class="col">
-                  <div class="row items-center q-gutter-sm q-mb-xs">
-                    <q-icon name="receipt" color="amber" size="sm" />
-                    <span class="text-subtitle1 text-amber text-weight-bold">
-                      {{ item.no_transaksi || '-' }}
-                    </span>
-                  </div>
-
-                  <div class="text-caption text-grey-5 flex items-center q-mt-xs">
-                    <q-icon name="event" size="xs" color="amber-5" class="q-mr-xs" />
-                    {{ formatTanggal(item.tanggal_transaksi) }}
-                  </div>
-
-                  <div
-                    v-if="item.angkringan?.nama_angkringan"
-                    class="text-caption text-grey-5 flex items-center q-mt-xs"
-                  >
-                    <q-icon name="storefront" size="xs" color="amber-5" class="q-mr-xs" />
-                    {{ item.angkringan.nama_angkringan }}
-                  </div>
-
-                  <div class="text-caption text-grey-5 flex items-center q-mt-xs">
-                    <q-icon name="shopping_bag" size="xs" color="amber-5" class="q-mr-xs" />
-                    {{ (item.rinci || []).length }} item
-                  </div>
-                  <div class="text-caption text-grey-5 flex items-center q-mt-xs">
-                    <q-icon name="price_change" size="xs" color="amber-5" class="q-mr-xs" />
-                    <q-badge
-                      v-if="item.flag"
-                      :color="item.flag === '2' ? 'green-5' : 'red-5'"
-                      text-color="black"
-                      class="text-weight-bold"
-                    >
-                      {{ label(item.flag) }}
-                    </q-badge>
-                  </div>
-                </div>
-
-                <div class="col-auto text-right">
-                  <div class="text-caption text-grey-5">Total</div>
-                  <div class="text-h6 text-amber text-weight-bold">
-                    Rp {{ formatRupiah(item.total_harga) }}
-                  </div>
-                </div>
+    <div class="list-wrapper">
+      <template v-if="store.loadingList && store.listPenjualan.length === 0">
+        <q-card v-for="n in 3" :key="n" class="top-card bg-dark q-mb-md skeleton-card">
+          <q-card-section>
+            <div class="row items-start no-wrap">
+              <div class="col">
+                <q-skeleton type="text" width="45%" class="q-mb-sm" />
+                <q-skeleton type="text" width="65%" />
+                <q-skeleton type="text" width="35%" class="q-mt-sm" />
+                <q-skeleton type="text" width="50%" class="q-mt-sm" />
               </div>
 
-              <div v-if="item.keterangan" class="text-caption text-grey-4 q-mt-sm">
-                <q-icon name="notes" size="xs" class="q-mr-xs" />
-                {{ item.keterangan }}
+              <div class="col-auto text-right">
+                <q-skeleton type="text" width="70px" />
+                <q-skeleton type="text" width="100px" class="q-mt-sm" />
               </div>
-            </q-card-section>
-
-            <!-- EXPANDABLE DETAIL -->
-            <div v-if="item.rinci && item.rinci.length > 0">
-              <q-separator dark />
-
-              <q-expansion-item dark header-class="text-amber" expand-icon="expand_more">
-                <template #header>
-                  <q-item-section avatar>
-                    <q-icon name="list_alt" color="amber" size="sm" />
-                  </q-item-section>
-                  <q-item-section>
-                    <span class="text-caption">Detail Item</span>
-                  </q-item-section>
-                </template>
-
-                <q-card flat class="bg-dark">
-                  <q-card-section>
-                    <div
-                      v-for="(rinci, idx) in item.rinci"
-                      :key="rinci.id || idx"
-                      class="row items-center no-wrap q-py-xs"
-                      :class="{ 'q-mt-xs': idx > 0 }"
-                    >
-                      <div class="col">
-                        <div class="text-body2 text-white">
-                          {{ rinci.nama_menu || rinci.menu_id || rinci.kodemenu || '-' }}
-                        </div>
-                        <div class="text-caption text-grey-5">
-                          {{ Number(rinci.jumlah || 0) }} x Rp
-                          {{ formatRupiah(rinci.harga_satuan) }}
-                        </div>
-                      </div>
-                      <div class="col-auto text-amber text-weight-bold text-body2">
-                        Rp {{ formatRupiah(rinci.subtotal) }}
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
-              </q-expansion-item>
             </div>
-          </q-card>
-        </q-slide-item>
-        <template #loading>
-          <div class="row justify-center q-my-md">
-            <q-spinner-dots color="amber" size="40px" />
-          </div>
-        </template>
-      </q-infinite-scroll>
+          </q-card-section>
+        </q-card>
+      </template>
+
+      <div v-else-if="store.listPenjualan.length === 0" class="empty-box">
+        <q-icon name="receipt_long" size="4rem" color="grey-7" />
+        <div class="text-h6 text-grey-6 q-mt-md">Belum ada data penjualan</div>
+      </div>
+
+      <div v-else ref="scrollTargetRef" class="scroll-list">
+        <q-infinite-scroll @load="onLoadPenjualan" :offset="250" :disable="store.doneList">
+          <q-slide-item
+            v-for="item in store.listPenjualan"
+            class="slide-card q-mb-md"
+            :key="item.id"
+            right-color="dark"
+            @left="({ reset }) => onSlideEdit(item, reset)"
+            @right="({ reset }) => onSlideBayar(item, reset)"
+          >
+            <!-- Tombol yang muncul saat swipe -->
+            <template #left>
+              <q-icon name="edit" color="white" size="30px" />
+            </template>
+
+            <!-- Geser ke kanan -->
+            <template #right>
+              <q-icon name="payments" color="white" size="30px" />
+            </template>
+
+            <q-card
+              class="top-card bg-dark text-white q-mb-md"
+              style="border-radius: 16px; overflow: hidden"
+            >
+              <q-card-section>
+                <div class="row items-start no-wrap">
+                  <div class="col">
+                    <div class="row items-center q-gutter-sm q-mb-xs">
+                      <q-icon name="receipt" color="amber" size="sm" />
+                      <span class="text-subtitle1 text-amber text-weight-bold">
+                        {{ item.no_transaksi || '-' }}
+                      </span>
+                    </div>
+
+                    <div class="text-caption text-grey-5 flex items-center q-mt-xs">
+                      <q-icon name="event" size="xs" color="amber-5" class="q-mr-xs" />
+                      {{ formatTanggal(item.tanggal_transaksi) }}
+                    </div>
+
+                    <div
+                      v-if="item.angkringan?.nama_angkringan"
+                      class="text-caption text-grey-5 flex items-center q-mt-xs"
+                    >
+                      <q-icon name="storefront" size="xs" color="amber-5" class="q-mr-xs" />
+                      {{ item.angkringan.nama_angkringan }}
+                    </div>
+
+                    <div class="text-caption text-grey-5 flex items-center q-mt-xs">
+                      <q-icon name="shopping_bag" size="xs" color="amber-5" class="q-mr-xs" />
+                      {{ (item.rinci || []).length }} item
+                    </div>
+                    <div class="text-caption text-grey-5 flex items-center q-mt-xs">
+                      <q-icon name="price_change" size="xs" color="amber-5" class="q-mr-xs" />
+                      <q-badge
+                        v-if="item.flag"
+                        :color="item.flag === '2' ? 'green-5' : 'red-5'"
+                        text-color="black"
+                        class="text-weight-bold"
+                      >
+                        {{ label(item.flag) }}
+                      </q-badge>
+                    </div>
+                  </div>
+
+                  <div class="col-auto text-right total-box">
+                    <div class="text-caption text-grey-5">Total</div>
+                    <div class="text-h6 text-amber text-weight-bold">
+                      Rp {{ formatRupiah(item.total_harga) }}
+                    </div>
+                  </div>
+                </div>
+                <div class="text-caption text-grey-5 flex items-center q-mt-xs">
+                  <q-icon name="people" size="xs" color="amber-5" class="q-mr-xs" />
+                  {{ item.atasnama || '-' }}
+                </div>
+                <div class="text-caption text-grey-4 q-mt-sm">
+                  <q-icon name="notes" size="xs" class="q-mr-xs" />
+                  {{ item.keterangan }}
+                </div>
+              </q-card-section>
+
+              <!-- EXPANDABLE DETAIL -->
+              <div v-if="item.rinci && item.rinci.length > 0">
+                <q-separator dark />
+
+                <q-expansion-item dark header-class="text-amber" expand-icon="expand_more">
+                  <template #header>
+                    <q-item-section avatar>
+                      <q-icon name="list_alt" color="amber" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <span class="text-caption">Detail Item</span>
+                    </q-item-section>
+                  </template>
+
+                  <q-card flat class="bg-dark">
+                    <q-card-section>
+                      <div
+                        v-for="(rinci, idx) in item.rinci"
+                        :key="rinci.id || idx"
+                        class="row items-center no-wrap q-py-xs"
+                        :class="{ 'q-mt-xs': idx > 0 }"
+                      >
+                        <div class="col">
+                          <div class="text-body2 text-white">
+                            {{ rinci?.menu?.name || '-' }}
+                          </div>
+                          <div class="text-caption text-grey-5">
+                            {{ Number(rinci.jumlah || 0) }} x Rp
+                            {{ formatRupiah(rinci.harga_satuan) }}
+                          </div>
+                        </div>
+                        <div class="col-auto text-amber text-weight-bold text-body2">
+                          Rp {{ formatRupiah(rinci.subtotal) }}
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </q-expansion-item>
+              </div>
+            </q-card>
+          </q-slide-item>
+          <template #loading>
+            <div class="row justify-center q-my-md">
+              <q-spinner-dots color="amber" size="40px" />
+            </div>
+          </template>
+        </q-infinite-scroll>
+      </div>
     </div>
 
     <q-dialog v-model="store.showDialogBayar" position="bottom">
@@ -439,6 +463,11 @@ function label(val) {
   }
 }
 
+async function clearSearch() {
+  store.paramsList.search = ''
+  await store.reloadListPenjualan()
+}
+
 const scrollTargetRef = ref(null)
 
 function formatRupiah(value) {
@@ -471,6 +500,10 @@ function onSlideEdit(item, reset) {
   emit('edit', item)
 }
 
+async function caribyangkringan() {
+  await store.reloadListPenjualan()
+}
+
 function onSlideBayar(item, reset) {
   reset()
 
@@ -501,6 +534,7 @@ async function onLoadPenjualan(index, done) {
 }
 
 const dateFromProxy = ref(null)
+const dateToProxy = ref(null)
 
 async function onDateFromChange() {
   dateFromProxy.value?.hide()
@@ -575,5 +609,18 @@ onMounted(async () => {
   min-height: 54px;
   font-size: 18px;
   font-weight: bold;
+}
+
+.list-wrapper {
+  min-height: 220px;
+}
+
+.skeleton-card {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.total-box {
+  margin-top: 34px;
 }
 </style>

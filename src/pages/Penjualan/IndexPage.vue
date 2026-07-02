@@ -8,7 +8,7 @@
 
 <script setup>
 import { usePenjualanStore } from 'src/stores/penjualan.js'
-import { defineAsyncComponent, ref } from 'vue'
+import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 const ListPenjualanPage = defineAsyncComponent(() => import('./comp/ListPenjualanPage.vue'))
 const FormPage = defineAsyncComponent(() => import('./comp/FormPage.vue'))
@@ -34,6 +34,13 @@ function onBack() {
 function back() {
   router.push('/')
 }
+
+const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
+const userId = Number(userData.id || 0)
+
+onMounted(async () => {
+  store.form.kode_angkringan = userId
+})
 </script>
 
 <style scoped></style>

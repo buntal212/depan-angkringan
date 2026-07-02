@@ -34,23 +34,16 @@
       <q-card-section>
         <div class="row q-col-gutter-sm">
           <div class="col-12 col-md-4">
-            <q-input
-              v-model="store.form.tgl"
-              type="date"
-              dark
-              outlined
-              rounded
-              dense
-              label="Tanggal"
-            >
-              <template #prepend>
-                <q-icon name="event" color="amber" />
-              </template>
-            </q-input>
-          </div>
+            <div class="row items-center">
+              <q-icon name="receipt" color="amber" size="20px" />
 
-          <div class="col-12 col-md-4">
-            <q-input
+              <q-space />
+
+              <div class="text-amber text-weight-bold">
+                {{ store.form.notrans }}
+              </div>
+            </div>
+            <!-- <q-input
               v-model="store.form.notrans"
               dark
               outlined
@@ -58,12 +51,27 @@
               dense
               label="No Transaksi"
               placeholder="Auto Generate"
-              hint="Kosongkan untuk generate otomatis"
+              readonly
             >
               <template #prepend>
                 <q-icon name="receipt" color="amber" />
               </template>
-            </q-input>
+            </q-input> -->
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="store.form.tgl"
+                type="date"
+                dark
+                outlined
+                rounded
+                dense
+                label="Tanggal"
+              >
+                <template #prepend>
+                  <q-icon name="event" color="amber" />
+                </template>
+              </q-input>
+            </div>
           </div>
 
           <div v-if="isSuperAdmin" class="col-12 col-md-4">
@@ -134,20 +142,9 @@
 
     <!-- MENU GRID -->
     <div class="row q-col-gutter-md">
-      <div
-        v-for="menu in filteredMenus"
-        :key="menu.kodemenu"
-        class="col-6 col-sm-4 col-md-3"
-      >
-        <q-card
-          class="menu-card bg-dark text-white shadow-10"
-          @click="addToCart(menu)"
-        >
-          <q-img
-            :src="menu.gambar_url || '/images/no-image.svg'"
-            :ratio="4 / 3"
-            class="menu-img"
-          >
+      <div v-for="menu in filteredMenus" :key="menu.kodemenu" class="col-6 col-sm-4 col-md-3">
+        <q-card class="menu-card bg-dark text-white shadow-10" @click="addToCart(menu)">
+          <q-img :src="menu.gambar_url || '/images/no-image.svg'" :ratio="4 / 3" class="menu-img">
             <template #error>
               <div class="absolute-full flex flex-center bg-grey-9 text-grey-6">
                 <q-icon name="broken_image" size="2rem" />
@@ -187,9 +184,7 @@
     <div v-if="store.form.items.length > 0" class="cart-bar">
       <div class="cart-info">
         <div class="text-caption text-grey-5">{{ totalItem }} item</div>
-        <div class="text-h6 text-amber text-weight-bold">
-          Rp {{ formatRupiah(totalHarga) }}
-        </div>
+        <div class="text-h6 text-amber text-weight-bold">Rp {{ formatRupiah(totalHarga) }}</div>
       </div>
       <q-btn
         rounded
@@ -427,7 +422,7 @@ function calculateSubtotal(index) {
 async function submitForm() {
   try {
     await store.simpanPenjualan()
-    emit('back')
+    // emit('back')
   } catch {
     // error already handled by store with Notify
   }
@@ -436,6 +431,10 @@ async function submitForm() {
 function formatRupiah(value) {
   return Number(value || 0).toLocaleString('id-ID')
 }
+
+onMounted(async () => {
+  store.form.kode_angkringan = userId
+})
 
 onMounted(async () => {
   menuStore.paramsangkringan.per_page = 200
