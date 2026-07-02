@@ -36,7 +36,7 @@ export default defineRouter((/* { store, ssrContext } */) => {
   Router.beforeEach((to) => {
     const token = localStorage.getItem('auth_token')
 
-    const publicPages = ['/login']
+    const publicPages = ['/login', '/register']
     const isPublic = publicPages.includes(to.path)
 
     // ❌ belum login → paksa ke login

@@ -5,15 +5,16 @@ export const useMenuStore = defineStore('menu-store', {
   state: () => ({
     menus: [],
     loading: false,
-    done: false
+    done: false,
+    user: '',
   }),
   actions: {
     async getMenus() {
       if (this.loading || this.done) return
-
+      const payload = { user: this.user }
       this.loading = true
       try {
-        const res = await api.get('/menus')
+        const res = await api.get('/menus', payload)
         const data = res.data.data ?? res.data
         this.menus = data
       } catch (err) {
@@ -21,6 +22,6 @@ export const useMenuStore = defineStore('menu-store', {
       } finally {
         this.loading = false
       }
-    }
-  }
+    },
+  },
 })

@@ -50,6 +50,9 @@ import { useMenuStore } from 'src/stores/menus'
 const menuStore = useMenuStore()
 
 onMounted(() => {
+  const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
+  const userId = Number(userData.id || 0)
+  menuStore.user = userId
   if (menuStore.menus.length === 0) {
     menuStore.getMenus()
   }

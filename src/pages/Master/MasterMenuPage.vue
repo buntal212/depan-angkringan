@@ -154,13 +154,13 @@ function onChangeAngkringan() {
 }
 
 onMounted(async () => {
-  store.resetData()
-
-  if (Number(userId.value) === 1) {
-    store.paramsangkringan.filterAngkringanId = 'all'
-  } else {
-    store.paramsangkringan.filterAngkringanId = userId.value
-  }
+  //store.resetData()
+  // if (userId.value == 1) {
+  //   store.paramsangkringan.filterAngkringanId = 'all'
+  // } else {
+  store.paramsangkringan.filterAngkringanId = 6
+  //}
+  console.log('sasa', store.paramsangkringan.filterAngkringanId)
   await angkringanStore.getItems()
   await store.getItems()
 })

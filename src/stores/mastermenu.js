@@ -16,7 +16,6 @@ export const useMasterMenu = defineStore('master-menu-store', {
 
   actions: {
     async getItems() {
-      // cegah double request
       if (this.loading || this.done) return
 
       this.loading = true
@@ -24,24 +23,25 @@ export const useMasterMenu = defineStore('master-menu-store', {
       try {
         const res = await api.get('/master-menu', this.paramsangkringan)
 
-        const rows = res?.data?.data || []
+        const payload = res.data.data ?? res.data
+        const rows = payload.data || []
 
-        // jika kosong
+        console.log('PARAMS:', this.paramsangkringan)
+        console.log('PAYLOAD:', payload)
+
         if (rows.length === 0) {
           this.done = true
           return
         }
 
-        // append tanpa duplicate
         const existingIds = new Set(this.items.map((i) => i.kodemenu))
-
         const newRows = rows.filter((i) => !existingIds.has(i.kodemenu))
 
         this.items.push(...newRows)
 
-        // pagination
-        if (res?.data?.next_page_url) {
-          this.paramsangkringan.page++
+        if (payload.next_page_url) {
+          this.paramsangkringan.page =
+            Number(payload.current_page || this.paramsangkringan.page) + 1
         } else {
           this.done = true
         }
@@ -56,7 +56,7 @@ export const useMasterMenu = defineStore('master-menu-store', {
       this.items = []
       this.done = false
 
-      this.paramsangkringan.page = 1
+      // this.paramsangkringan.page = 1
     },
 
     async addItem(payload) {

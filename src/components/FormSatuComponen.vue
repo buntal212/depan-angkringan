@@ -218,8 +218,8 @@ const props = defineProps({
     default: false,
   },
   idangkringan: {
-    type: String,
-    default: '',
+    type: [Number, String],
+    default: null,
   },
 })
 
