@@ -7,7 +7,10 @@ const api = axios.create({
 
 // Override get agar bisa tulis api.get(url, params) langsung
 const originalGet = api.get.bind(api)
-api.get = (url, params = {}) => originalGet(url, { params })
+api.get = (url, paramsOrConfig = {}) =>
+  Object.prototype.hasOwnProperty.call(paramsOrConfig, 'params')
+    ? originalGet(url, paramsOrConfig)
+    : originalGet(url, { params: paramsOrConfig })
 
 export default boot(({ app }) => {
   // 🔥 AUTO SET TOKEN SETIAP REQUEST

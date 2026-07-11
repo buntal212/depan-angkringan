@@ -2,7 +2,7 @@
   <q-page class="report-page bg-black text-white q-pa-md">
     <HederSatuComponen
       title="Laporan Penjualan"
-      subtitle="Analisa transaksi penjualan seluruh outlet."
+      subtitle="Analisa transaksi penjualan outlet Anda."
       back-route="/"
       :show-add-button="false"
       @refresh="refreshReport"
@@ -41,26 +41,9 @@
         <q-icon name="tune" color="amber" size="md" />
       </q-card-section>
       <q-card-section class="q-pt-sm">
-        <q-form @submit.prevent="store.fetchReport">
+        <q-form @submit.prevent="store.fetchLaporanPenjualan">
           <div class="row q-col-gutter-sm">
-            <div class="col-12 col-sm-6 col-lg-3">
-              <q-select
-                v-model="store.filters.outlet"
-                :options="outletOptions"
-                :loading="store.loadingOutlets"
-                dark
-                outlined
-                rounded
-                dense
-                clearable
-                emit-value
-                map-options
-                label="Outlet"
-              >
-                <template #prepend><q-icon name="storefront" color="amber" /></template>
-              </q-select>
-            </div>
-            <div class="col-6 col-lg-2">
+            <div class="col-12 col-sm-6 col-md-3">
               <q-input
                 v-model="store.filters.dateFrom"
                 dark
@@ -85,7 +68,7 @@
                 </q-popup-proxy>
               </q-input>
             </div>
-            <div class="col-6 col-lg-2">
+            <div class="col-12 col-sm-6 col-md-3">
               <q-input
                 v-model="store.filters.dateTo"
                 dark
@@ -111,7 +94,7 @@
                 </q-popup-proxy>
               </q-input>
             </div>
-            <div class="col-12 col-sm-6 col-lg-2">
+            <div class="col-12 col-sm-6 col-md-3">
               <q-select
                 v-model="store.filters.paymentMethod"
                 :options="paymentMethods"
@@ -125,7 +108,7 @@
                 <template #prepend><q-icon name="payments" color="amber" /></template>
               </q-select>
             </div>
-            <div class="col-12 col-sm-6 col-lg-3">
+            <div class="col-12 col-sm-6 col-md-3">
               <q-select
                 v-model="store.filters.paymentStatus"
                 :options="paymentStatuses"
@@ -141,21 +124,7 @@
                 <template #prepend><q-icon name="verified" color="amber" /></template>
               </q-select>
             </div>
-            <div class="col-12 col-lg-8">
-              <q-input
-                v-model="store.filters.search"
-                dark
-                outlined
-                rounded
-                dense
-                clearable
-                label="Search"
-                placeholder="No transaksi, kasir, atau pelanggan..."
-              >
-                <template #prepend><q-icon name="search" color="amber" /></template>
-              </q-input>
-            </div>
-            <div class="col-12 col-lg-4 row justify-end items-center q-gutter-sm filter-actions">
+            <div class="col-12 row justify-end items-center q-gutter-sm filter-actions q-mt-xs">
               <q-btn
                 flat
                 rounded
@@ -170,8 +139,8 @@
                 rounded
                 color="amber"
                 text-color="black"
-                icon="search"
-                label="Cari"
+                icon="filter_alt"
+                label="Terapkan Filter"
                 class="text-weight-bold"
                 type="submit"
                 :loading="store.loading"
@@ -224,7 +193,7 @@
           icon="refresh"
           label="Coba Lagi"
           class="q-mt-md"
-          @click="store.fetchReport"
+          @click="store.fetchLaporanPenjualan"
         />
       </div>
 
@@ -250,7 +219,7 @@
         <div class="empty-icon"><q-icon name="receipt_long" size="64px" color="amber-8" /></div>
         <div class="text-h6 text-grey-4 q-mt-md">Belum ada transaksi</div>
         <div class="text-caption text-grey-6 text-center">
-          Ubah filter atau periode untuk melihat data lainnya.
+          Belum ada data penjualan pada filter yang dipilih.
         </div>
         <q-btn
           flat
@@ -327,15 +296,15 @@
 
             <div class="row justify-end q-mt-md">
               <div class="col-12 col-sm-7 col-md-5 col-lg-4">
-                <div class="grand-total-panel">
-                  <div class="grand-total-panel__icon">
-                    <q-icon name="paid" size="30px" />
+                <div class="transaction-total-panel">
+                  <div class="transaction-total-panel__icon">
+                    <q-icon name="account_balance_wallet" size="30px" />
                   </div>
-                  <div class="grand-total-panel__content">
-                    <span>Grand Total</span>
+                  <div class="transaction-total-panel__content">
+                    <span>Total</span>
                     <strong>
                       <FormatNumberComponen
-                        :model-value="grandTotal(transaction)"
+                        :model-value="subtotal(transaction)"
                         prefix="Rp"
                         display-only
                       />
@@ -390,8 +359,11 @@
                 <div class="row q-col-gutter-sm items-center">
                   <div class="col-12 col-sm">
                     <div class="text-weight-bold text-wrap">{{ menuName(item) }}</div>
-                    <div v-if="item.catatan" class="text-caption text-grey-6 text-wrap">
-                      {{ item.catatan }}
+                    <div
+                      v-if="item.menu?.kodemenu || item.menu_id"
+                      class="text-caption text-grey-6 text-wrap"
+                    >
+                      Kode: {{ item.menu?.kodemenu || item.menu_id }}
                     </div>
                   </div>
                   <div class="col-4 col-sm-auto menu-stat">
@@ -447,35 +419,33 @@ const paymentStatuses = [
   { label: 'Lunas', value: '2' },
   { label: 'Belum Bayar', value: '1' },
 ]
-const outletOptions = computed(() =>
-  store.outlets.map((item) => ({ label: item.name || item.nama_angkringan, value: item.id })),
-)
+
 const summaryCards = computed(() => [
   {
     label: 'Total Transaksi',
-    value: store.summary.totalTransactions.toLocaleString('id-ID'),
+    value: Number(store.summary.total_transaksi || 0).toLocaleString('id-ID'),
     icon: 'receipt_long',
     tone: 'amber',
     hint: 'Transaksi tercatat',
   },
   {
     label: 'Total Penjualan',
-    value: formatCurrency(store.summary.totalSales),
+    value: formatCurrency(store.summary.total_penjualan),
     icon: 'payments',
     tone: 'green',
     hint: 'Omzet periode ini',
   },
   {
     label: 'Total Item Terjual',
-    value: store.summary.totalItems.toLocaleString('id-ID'),
+    value: Number(store.summary.total_item || 0).toLocaleString('id-ID'),
     icon: 'shopping_bag',
     tone: 'blue',
     hint: 'Menu berhasil terjual',
   },
   {
     label: 'Rata-rata Transaksi',
-    value: formatCurrency(store.summary.averageTransaction),
-    icon: 'monitoring',
+    value: formatCurrency(store.summary.rata_rata_transaksi),
+    icon: 'functions',
     tone: 'purple',
     hint: 'Nilai per transaksi',
   },
@@ -485,52 +455,48 @@ const lastUpdatedLabel = computed(() =>
 )
 
 function details(row) {
-  return row.rinci || row.items || row.details || []
+  return row.rinci || []
 }
 function transactionNumber(row) {
-  return row.no_transaksi || row.notrans || '-'
+  return row.no_transaksi || '-'
 }
 function transactionDate(row) {
-  return row.tanggal_transaksi || row.tanggal || row.created_at || ''
+  return row.tanggal_transaksi || ''
 }
 
 function customerName(row) {
-  return row.atasnama || row.customer_name || row.pelanggan?.name || row.customer?.name || '-'
+  return row.atasnama || '-'
 }
 function itemCount(row) {
-  return details(row).reduce(
-    (sum, item) => sum + Number(item.jumlah ?? item.qty ?? item.quantity ?? 0),
-    0,
-  )
+  return details(row).reduce((sum, item) => sum + Number(item.jumlah || 0), 0)
 }
-
-function grandTotal(row) {
-  return Number(row.grand_total ?? row.total_harga ?? row.total ?? row.subtotal ?? 0)
+function subtotal(row) {
+  return Number(row.subtotal || 0)
 }
 
 function paymentMethod(row) {
-  return row.metode_bayar || row.payment_method || '-'
+  return row.metode_bayar || '-'
 }
 function paidAmount(row) {
-  return Number(row.dibayar ?? row.uang_dibayar ?? row.paid_amount ?? row.bayar ?? 0)
+  return Number(row.dibayar || 0)
 }
 function changeAmount(row) {
-  return Number(row.kembalian ?? row.change ?? row.change_amount ?? 0)
+  return Number(row.kembalian || 0)
 }
 function menuName(item) {
-  return item.menu?.name || item.menu?.nama_menu || item.nama_menu || item.name || '-'
+  return item.menu?.name || '-'
 }
 function itemQuantity(item) {
-  return Number(item.jumlah ?? item.qty ?? item.quantity ?? 0)
+  return Number(item.jumlah || 0)
 }
 function itemPrice(item) {
-  return Number(item.harga_satuan ?? item.harga ?? item.price ?? 0)
+  return Number(item.harga_satuan || 0)
 }
 function itemSubtotal(item) {
-  return Number(item.subtotal ?? item.total ?? itemPrice(item) * itemQuantity(item))
+  return Number(item.subtotal || 0)
 }
 function isPaid(row) {
-  return String(row.flag) === '2' || String(row.status_pembayaran).toUpperCase() === 'LUNAS'
+  return String(row.flag) === '2'
 }
 function transactionInfo(row) {
   return [
@@ -540,6 +506,7 @@ function transactionInfo(row) {
       value: `${itemCount(row).toLocaleString('id-ID')} item`,
       icon: 'shopping_bag',
     },
+
     { label: 'Uang Dibayar', value: paidAmount(row), icon: 'payments', money: true },
     {
       label: 'Kembalian',
@@ -548,6 +515,7 @@ function transactionInfo(row) {
       money: true,
       className: 'text-green-4',
     },
+    { label: 'Catatan', value: row.keterangan || '-', icon: 'notes' },
   ]
 }
 function formatCurrency(value) {
@@ -566,7 +534,7 @@ function openDetail(row) {
   showDetail.value = true
 }
 async function refreshReport() {
-  await store.fetchReport()
+  await store.fetchLaporanPenjualan()
 }
 function exportPdf() {
   try {
@@ -581,7 +549,9 @@ function exportPdf() {
 }
 
 onMounted(async () => {
-  await Promise.all([store.fetchOutlets(), store.fetchReport()])
+  if (store.loadUserOutletFromStorage()) {
+    await store.fetchLaporanPenjualan()
+  }
 })
 </script>
 
@@ -662,7 +632,7 @@ onMounted(async () => {
   overflow-wrap: anywhere;
   font-size: 13px;
 }
-.grand-total-panel {
+.transaction-total-panel {
   display: flex;
   min-width: 0;
   align-items: center;
@@ -679,12 +649,12 @@ onMounted(async () => {
     background 0.25s ease,
     box-shadow 0.25s ease;
 }
-.grand-total-panel:hover {
+.transaction-total-panel:hover {
   transform: translateY(-2px);
   background: linear-gradient(135deg, rgba(255, 224, 130, 0.98), rgba(255, 202, 40, 0.9));
   box-shadow: 0 11px 28px rgba(255, 193, 7, 0.23);
 }
-.grand-total-panel__icon {
+.transaction-total-panel__icon {
   width: 48px;
   height: 48px;
   display: grid;
@@ -693,19 +663,19 @@ onMounted(async () => {
   border-radius: 15px;
   background: rgba(0, 0, 0, 0.1);
 }
-.grand-total-panel__content {
+.transaction-total-panel__content {
   display: flex;
   min-width: 0;
   flex-direction: column;
   align-items: flex-end;
 }
-.grand-total-panel__content span {
+.transaction-total-panel__content span {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
-.grand-total-panel__content strong {
+.transaction-total-panel__content strong {
   max-width: 100%;
   overflow-wrap: anywhere;
   font-size: clamp(22px, 2.2vw, 29px);
@@ -814,11 +784,11 @@ onMounted(async () => {
   .menu-stat {
     min-width: 0;
   }
-  .grand-total-panel {
+  .transaction-total-panel {
     width: 100%;
     justify-content: space-between;
   }
-  .grand-total-panel__content {
+  .transaction-total-panel__content {
     align-items: flex-end;
   }
 }

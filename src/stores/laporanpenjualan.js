@@ -11,14 +11,24 @@ const formatDate = (date) => {
 const initialFilters = () => {
   const now = new Date()
   return {
-    outlet: null,
     dateFrom: formatDate(new Date(now.getFullYear(), now.getMonth(), 1)),
     dateTo: formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
     paymentMethod: null,
     paymentStatus: null,
-    search: '',
   }
 }
+
+const initialSummary = () => ({
+  total_transaksi: 0,
+  total_penjualan: 0,
+  total_item: 0,
+  rata_rata_transaksi: 0,
+  total_cash: 0,
+  total_qris: 0,
+  total_transfer: 0,
+  total_lunas: 0,
+  total_belum_bayar: 0,
+})
 
 const numberValue = (value) => Number(value || 0)
 const transactionItems = (row) => row.rinci || row.items || row.details || []
@@ -40,36 +50,16 @@ const escapeHtml = (value) =>
 export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
   state: () => ({
     transactions: [],
-    outlets: [],
+    summary: initialSummary(),
     filters: initialFilters(),
+    userAngkringanId: null,
+    isSuperAdmin: false,
     loading: false,
-    loadingOutlets: false,
     error: null,
     lastUpdated: null,
   }),
 
   getters: {
-    summary: (state) => {
-      const totalTransactions = state.transactions.length
-      const totalSales = state.transactions.reduce((sum, row) => sum + transactionTotal(row), 0)
-      const totalItems = state.transactions.reduce(
-        (sum, row) =>
-          sum +
-          transactionItems(row).reduce(
-            (itemSum, item) => itemSum + numberValue(item.jumlah ?? item.qty ?? item.quantity),
-            0,
-          ),
-        0,
-      )
-
-      return {
-        totalTransactions,
-        totalSales,
-        totalItems,
-        averageTransaction: totalTransactions ? totalSales / totalTransactions : 0,
-      }
-    },
-
     dailySales: (state) => {
       const grouped = state.transactions.reduce((result, row) => {
         const key = String(row.tanggal_transaksi || row.tanggal || row.created_at || '').slice(
@@ -85,85 +75,70 @@ export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
         .map(([date, value]) => ({ date, value }))
     },
 
-    paymentSales: (state) => {
-      const grouped = state.transactions.reduce((result, row) => {
-        const method = String(row.metode_bayar || row.payment_method || 'Lainnya').toUpperCase()
-        result[method] = (result[method] || 0) + transactionTotal(row)
-        return result
-      }, {})
-
-      return Object.entries(grouped)
-        .map(([label, value]) => ({ label, value }))
-        .sort((a, b) => b.value - a.value)
-    },
+    paymentSales: (state) =>
+      [
+        { label: 'CASH', value: numberValue(state.summary.total_cash) },
+        { label: 'QRIS', value: numberValue(state.summary.total_qris) },
+        { label: 'TRANSFER', value: numberValue(state.summary.total_transfer) },
+      ].filter((item) => item.value > 0),
   },
 
   actions: {
-    async fetchOutlets() {
-      this.loadingOutlets = true
+    loadUserOutletFromStorage() {
       try {
-        const response = await api.get('/master-angkringan', { per_page: 200 })
-        const payload = response.data?.data ?? response.data
-        this.outlets = Array.isArray(payload) ? payload : payload?.data || []
+        const rawUserData = localStorage.getItem('user_data')
+        const userData = rawUserData ? JSON.parse(rawUserData) : null
+        const userId = Number(userData?.id || 0)
+
+        this.isSuperAdmin = userId === 1
+        this.userAngkringanId = this.isSuperAdmin || !userId ? null : userId
+
+        if (!this.isSuperAdmin && !this.userAngkringanId) {
+          this.error = 'Data outlet pengguna tidak ditemukan. Silakan login ulang.'
+          return false
+        }
+
+        return true
       } catch (error) {
-        console.error('Gagal memuat outlet laporan:', error)
-      } finally {
-        this.loadingOutlets = false
+        this.isSuperAdmin = false
+        this.userAngkringanId = null
+        this.error = 'Data outlet pengguna tidak ditemukan. Silakan login ulang.'
+        console.error('Gagal membaca data pengguna:', error)
+        return false
       }
     },
 
-    async fetchReport() {
+    async fetchLaporanPenjualan() {
       if (this.loading) return
-      this.loading = true
       this.error = null
 
+      if (!this.isSuperAdmin && !this.userAngkringanId) {
+        this.error = 'Data outlet pengguna tidak ditemukan. Silakan login ulang.'
+        return
+      }
+
+      this.loading = true
+
       try {
-        const baseParams = {
-          per_page: 500,
-          search: this.filters.search || undefined,
-          dateFrom: this.filters.dateFrom || undefined,
-          dateTo: this.filters.dateTo || undefined,
-          angkringan_id: this.filters.outlet || undefined,
-          metode_bayar: this.filters.paymentMethod || undefined,
-          flag: this.filters.paymentStatus || undefined,
-        }
-        const allTransactions = []
-        const seenIds = new Set()
-        const maxPages = 1000
-        let page = 1
-        let hasNextPage = true
+        const response = await api.get('/laporan-penjualan', {
+          params: {
+            dateFrom: this.filters.dateFrom || undefined,
+            dateTo: this.filters.dateTo || undefined,
+            angkringan_id: this.isSuperAdmin ? undefined : this.userAngkringanId,
+            metode_bayar: this.filters.paymentMethod || undefined,
+            flag:
+              this.filters.paymentStatus !== '' && this.filters.paymentStatus !== null
+                ? this.filters.paymentStatus
+                : undefined,
+          },
+        })
 
-        while (hasNextPage && page <= maxPages) {
-          const response = await api.get('/penjualan-getlist', { ...baseParams, page })
-          const payload = response.data?.data ?? response.data
-          const pageItems = Array.isArray(payload) ? payload : payload?.data || []
-
-          pageItems.forEach((item) => {
-            const key = item.id ?? `${item.no_transaksi || ''}-${item.tanggal_transaksi || ''}`
-            if (!seenIds.has(key)) {
-              seenIds.add(key)
-              allTransactions.push(item)
-            }
-          })
-
-          if (Array.isArray(payload)) {
-            hasNextPage = false
-          } else {
-            const currentPage = Number(payload?.current_page || page)
-            const lastPage = Number(payload?.last_page || currentPage)
-            hasNextPage = Boolean(payload?.next_page_url) || currentPage < lastPage
-            page = currentPage + 1
-          }
-        }
-
-        if (hasNextPage) {
-          throw new Error('Jumlah halaman laporan melebihi batas aman pengambilan data.')
-        }
-
-        this.transactions = allTransactions
+        this.transactions = response.data?.data || []
+        this.summary = response.data?.summary || initialSummary()
         this.lastUpdated = new Date().toISOString()
       } catch (error) {
         this.transactions = []
+        this.summary = initialSummary()
         this.error =
           error?.response?.data?.message || 'Data laporan gagal dimuat. Silakan coba lagi.'
         console.error('Gagal memuat laporan penjualan:', error)
@@ -174,7 +149,7 @@ export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
 
     async resetFilters() {
       this.filters = initialFilters()
-      await this.fetchReport()
+      await this.fetchLaporanPenjualan()
     },
 
     exportExcel() {
@@ -234,7 +209,7 @@ export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
       reportWindow.document.write(`<!doctype html><html><head><title>Laporan Penjualan</title>
         <style>body{font-family:Arial,sans-serif;color:#171717;padding:32px}h1{margin:0 0 4px}p{color:#666;margin:0 0 24px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}th{background:#ffc107;color:#111}.summary{display:flex;gap:24px;margin:20px 0}.summary b{display:block;font-size:18px}@media print{body{padding:0}}</style>
         </head><body><h1>Laporan Penjualan</h1><p>Periode ${escapeHtml(this.filters.dateFrom)} s/d ${escapeHtml(this.filters.dateTo)}</p>
-        <div class="summary"><div>Total Transaksi<b>${this.summary.totalTransactions}</b></div><div>Total Penjualan<b>Rp ${this.summary.totalSales.toLocaleString('id-ID')}</b></div><div>Total Item<b>${this.summary.totalItems}</b></div></div>
+        <div class="summary"><div>Total Transaksi<b>${numberValue(this.summary.total_transaksi).toLocaleString('id-ID')}</b></div><div>Total Penjualan<b>Rp ${numberValue(this.summary.total_penjualan).toLocaleString('id-ID')}</b></div><div>Total Item<b>${numberValue(this.summary.total_item).toLocaleString('id-ID')}</b></div></div>
         <table><thead><tr><th>No Transaksi</th><th>Tanggal</th><th>Outlet</th><th>Metode Bayar</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table>
         <script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</${'script'}></body></html>`)
       reportWindow.document.close()
