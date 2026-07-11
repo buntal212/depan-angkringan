@@ -15,6 +15,11 @@ const routes = [
         // component: () => import('pages/Penjualan/IndexPage.vue'),
         component: () => import('pages/Penjualan/IndexPage.vue'),
       },
+      {
+        path: '/laporan-penjualan',
+        // component: () => import('pages/Penjualan/IndexPage.vue'),
+        component: () => import('pages/LaporanPenjualan/IndexPage.vue'),
+      },
     ],
   },
   {

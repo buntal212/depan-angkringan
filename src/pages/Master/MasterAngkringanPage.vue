@@ -77,7 +77,7 @@ const store = useMasterAngkringan()
 
 const onAdd = () => {
   // TODO: buka dialog tambah data baru
-  console.log('Tambah baru clicked')
+  // console.log('Tambah baru clicked')
 }
 
 onMounted(() => {

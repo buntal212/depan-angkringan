@@ -5,7 +5,7 @@ export const canInstall = ref(false)
 
 export default async () => {
   window.addEventListener('beforeinstallprompt', (e) => {
-    console.log('🔥 INSTALL AVAILABLE')
+    // console.log('🔥 INSTALL AVAILABLE')
 
     e.preventDefault()
 
@@ -14,7 +14,7 @@ export default async () => {
   })
 
   window.addEventListener('appinstalled', () => {
-    console.log('✅ APP INSTALLED')
+    // console.log('✅ APP INSTALLED')
 
     deferredPrompt.value = null
     canInstall.value = false

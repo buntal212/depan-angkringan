@@ -137,7 +137,7 @@ const router = useRouter()
 const showDialog = ref(false)
 
 watch(canInstall, (val) => {
-  console.log('WATCH:', val)
+  // console.log('WATCH:', val)
 
   if (val) {
     showDialog.value = true

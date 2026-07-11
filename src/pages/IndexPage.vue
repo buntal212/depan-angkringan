@@ -1,9 +1,25 @@
 <template>
   <q-page class="q-pa-md bg-black">
     <!-- Header Welcome -->
-    <div class="q-mb-xl q-mt-md animate-fade-in-up">
-      <div class="text-h5 text-white text-weight-bold">Halo, Admin! 👋</div>
-      <div class="text-subtitle2 text-grey-5">Selamat datang di Dashboard SI-NANGKRING</div>
+    <div class="apple-dashboard-header q-mb-xl q-mt-md animate-fade-in-up">
+      <q-icon name="local_cafe" class="apple-dashboard-header__icon" />
+
+      <div class="apple-dashboard-header__content">
+        <div class="apple-dashboard-header__greeting">Selamat datang 👋</div>
+
+        <div class="apple-dashboard-header__name">
+          {{ namauser }}
+        </div>
+
+        <div class="apple-dashboard-header__description">
+          Kelola menu, transaksi, dan pantau perkembangan
+          <span>SI-NANGKRING</span> hari ini.
+        </div>
+      </div>
+
+      <div class="apple-dashboard-header__line">
+        <span></span>
+      </div>
     </div>
 
     <!-- Grid Menu -->
@@ -44,14 +60,15 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useMenuStore } from 'src/stores/menus'
 
 const menuStore = useMenuStore()
-
+const namauser = ref(null)
 onMounted(() => {
   const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
   const userId = Number(userData.id || 0)
+  namauser.value = ref(userData.name)
   menuStore.user = userId
   if (menuStore.menus.length === 0) {
     menuStore.getMenus()
@@ -148,6 +165,95 @@ onMounted(() => {
   100% {
     opacity: 0.8;
     transform: scale(0.98);
+  }
+}
+
+.apple-dashboard-header {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 22px;
+}
+
+.apple-dashboard-header__content {
+  position: relative;
+  z-index: 2;
+}
+
+.apple-dashboard-header__greeting {
+  margin-bottom: 4px;
+  color: #ffc107;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.apple-dashboard-header__name {
+  color: #ffffff;
+  font-size: clamp(34px, 6vw, 58px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+}
+
+.apple-dashboard-header__description {
+  max-width: 560px;
+  margin-top: 12px;
+  color: #9e9e9e;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.apple-dashboard-header__description span {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.apple-dashboard-header__icon {
+  position: absolute;
+  top: -20px;
+  right: 10px;
+  color: #ffc107;
+  font-size: 150px;
+  opacity: 0.07;
+  transform: rotate(-10deg);
+  pointer-events: none;
+}
+
+.apple-dashboard-header__line {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 1px;
+  margin-top: 24px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.apple-dashboard-header__line span {
+  display: block;
+  width: 90px;
+  height: 2px;
+  background: #ffc107;
+  border-radius: 99px;
+}
+
+@media (max-width: 600px) {
+  .apple-dashboard-header {
+    padding-top: 10px;
+  }
+
+  .apple-dashboard-header__name {
+    font-size: 38px;
+  }
+
+  .apple-dashboard-header__icon {
+    top: 0;
+    right: -20px;
+    font-size: 110px;
+  }
+
+  .apple-dashboard-header__description {
+    max-width: 80%;
+    font-size: 14px;
   }
 }
 </style>
