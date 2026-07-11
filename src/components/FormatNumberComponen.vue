@@ -1,5 +1,10 @@
 <template>
+  <span v-if="displayOnly" class="formatted-number">
+    <span v-if="prefix" class="formatted-number__prefix">{{ prefix }}</span>
+    {{ displayValue || '0' }}
+  </span>
   <q-input
+    v-else
     :model-value="displayValue"
     @update:model-value="onInput"
     @blur="onBlur"
@@ -47,6 +52,10 @@ const props = defineProps({
   rules: {
     type: Array,
     default: () => [],
+  },
+  displayOnly: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -96,3 +105,15 @@ const onBlur = () => {
   isFocused.value = false
 }
 </script>
+
+<style scoped>
+.formatted-number {
+  display: inline;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.formatted-number__prefix {
+  margin-right: 2px;
+}
+</style>
