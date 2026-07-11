@@ -8,7 +8,7 @@
       back-route="/"
       @add="onAdd"
     >
-      <template #actions>
+      <!-- <template #actions>
         <div class="row justify-center full-width q-mt-md">
           <q-select
             v-if="userId === 1"
@@ -32,7 +32,7 @@
             </template>
           </q-select>
         </div>
-      </template>
+      </template> -->
     </HederSatuComponen>
 
     <!-- Menggunakan AppListSatuComponen -->
@@ -49,7 +49,9 @@
           <q-card-section>
             <div class="row items-start no-wrap">
               <div class="col">
-                <div class="text-h6 text-amber text-weight-bold">{{ item.name }}</div>
+                <div class="text-h6 text-amber text-weight-bold">
+                  {{ item.name }} ({{ item?.angkringan?.name }})
+                </div>
                 <div class="text-caption text-grey-4 flex items-center q-mt-xs">
                   <q-icon name="category" size="xs" color="amber-5" class="q-mr-xs" />
                   {{ item.kategori || '-' }}
@@ -118,10 +120,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useMasterMenu } from 'src/stores/mastermenu'
-import { useMasterAngkringan } from 'src/stores/masterangkringan'
+// import { useMasterAngkringan } from 'src/stores/masterangkringan'
 import { notifySuccess, notifyError } from 'src/utils/notify'
 import AppListSatuComponen from 'src/components/AppListSatuComponen.vue'
 import HederSatuComponen from 'src/components/HederSatuComponen.vue'
@@ -129,40 +131,21 @@ import FormSatuComponen from 'src/components/FormSatuComponen.vue'
 
 const $q = useQuasar()
 const store = useMasterMenu()
-const angkringanStore = useMasterAngkringan()
+// const angkringanStore = useMasterAngkringan()
 const showForm = ref(false)
 const editItem = ref(null)
 const saving = ref(false)
+
 const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
-const userId = ref(userData.id)
+const userId = Number(userData.id || 0)
 
-const angkringanOptions = computed(() => [
-  {
-    label: 'Semua Angkringan',
-    value: 'all',
-  },
+// Harus dijalankan sebelum infinite scroll aktif
+store.resetData()
+store.paramsangkringan.filterAngkringanId = userId
 
-  ...angkringanStore.items.map((item) => ({
-    label: item.name,
-    value: item.id,
-  })),
-])
-
-function onChangeAngkringan() {
-  store.resetData()
-  store.getItems()
-}
-
-onMounted(async () => {
-  //store.resetData()
-  // if (userId.value == 1) {
-  //   store.paramsangkringan.filterAngkringanId = 'all'
-  // } else {
-  store.paramsangkringan.filterAngkringanId = 6
-  //}
-  console.log('sasa', store.paramsangkringan.filterAngkringanId)
-  await angkringanStore.getItems()
-  await store.getItems()
+onMounted(() => {
+  console.log('user ID:', userId)
+  console.log('filterAngkringanId:', store.paramsangkringan.filterAngkringanId)
 })
 
 // watch(

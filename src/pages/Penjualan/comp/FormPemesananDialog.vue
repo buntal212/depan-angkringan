@@ -41,7 +41,7 @@
             </q-input>
           </div>
 
-          <div v-if="isSuperAdmin" class="col-12 col-md-4">
+          <!-- <div v-if="isSuperAdmin" class="col-12 col-md-4">
             <q-select
               v-model="form.kode_angkringan"
               :options="angkringanOptions"
@@ -58,7 +58,7 @@
                 <q-icon name="storefront" color="amber" />
               </template>
             </q-select>
-          </div>
+          </div> -->
 
           <div class="col-12 col-md-4">
             <q-select
@@ -122,54 +122,78 @@
 
     <!-- MENU GRID -->
     <div class="row q-col-gutter-md q-pb-xl">
-      <div v-for="menu in filteredMenus" :key="menu.kodemenu" class="col-6 col-sm-4 col-md-3">
-        <q-card class="menu-card bg-dark text-white" @click="addToCart(menu)">
-          <q-img
-            :src="menu.gambar_url || 'https://cdn.quasar.dev/img/food.jpg'"
-            :ratio="1"
-            class="menu-img"
-          >
-            <template #error>
-              <div class="absolute-full flex flex-center bg-grey-9">
-                <q-icon name="restaurant_menu" size="40px" color="grey-6" />
+      <!-- Skeleton Loading -->
+      <template v-if="menuStore.loading">
+        <div v-for="n in 8" :key="n" class="col-6 col-sm-4 col-md-3">
+          <q-card class="menu-card bg-dark">
+            <q-skeleton square height="180px" />
+
+            <q-card-section>
+              <q-skeleton type="text" width="70%" />
+              <q-skeleton type="text" width="40%" class="q-mt-xs" />
+
+              <div class="row items-center q-mt-md">
+                <q-skeleton type="text" width="60%" />
+                <q-space />
+                <q-skeleton type="QBtn" />
               </div>
-            </template>
+            </q-card-section>
+          </q-card>
+        </div>
+      </template>
 
-            <div v-if="getQty(menu.kodemenu) > 0" class="absolute-top-right q-pa-xs">
-              <q-badge color="amber" text-color="black"> x{{ getQty(menu.kodemenu) }} </q-badge>
-            </div>
-          </q-img>
+      <!-- Data Menu -->
+      <template v-else>
+        <div v-for="menu in filteredMenus" :key="menu.kodemenu" class="col-6 col-sm-4 col-md-3">
+          <q-card class="menu-card bg-dark text-white" @click="addToCart(menu)">
+            <q-img
+              :src="menu.gambar_url || 'https://cdn.quasar.dev/img/food.jpg'"
+              :ratio="1"
+              class="menu-img"
+            >
+              <template #error>
+                <div class="absolute-full flex flex-center bg-grey-9">
+                  <q-icon name="restaurant_menu" size="40px" color="grey-6" />
+                </div>
+              </template>
 
-          <q-card-section class="q-pa-sm">
-            <div class="text-subtitle2 text-weight-bold ellipsis">
-              {{ menu.name }}
-            </div>
+              <div v-if="getQty(menu.kodemenu) > 0" class="absolute-top-right q-pa-xs">
+                <q-badge color="amber" text-color="black"> x{{ getQty(menu.kodemenu) }} </q-badge>
+              </div>
+            </q-img>
 
-            <div class="text-caption text-grey-5 ellipsis">
-              {{ menu.kategori || '-' }}
-            </div>
+            <q-card-section class="q-pa-sm">
+              <div class="text-subtitle2 text-weight-bold ellipsis">
+                {{ menu.name }}
+              </div>
 
-            <div class="row items-center q-mt-sm">
-              <div class="text-amber text-weight-bold">Rp {{ formatRupiah(menu.harga) }}</div>
+              <div class="text-caption text-grey-5 ellipsis">
+                {{ menu.kategori || '-' }}
+              </div>
 
-              <q-space />
+              <div class="row items-center q-mt-sm">
+                <div class="text-amber text-weight-bold">Rp {{ formatRupiah(menu.harga) }}</div>
 
-              <q-btn
-                round
-                dense
-                unelevated
-                color="amber"
-                text-color="black"
-                icon="add"
-                size="sm"
-                @click.stop="addToCart(menu)"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+                <q-space />
 
-      <div v-if="filteredMenus.length === 0" class="col-12">
+                <q-btn
+                  round
+                  dense
+                  unelevated
+                  color="amber"
+                  text-color="black"
+                  icon="add"
+                  size="sm"
+                  @click.stop="addToCart(menu)"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </template>
+
+      <!-- Empty -->
+      <div v-if="!menuStore.loading && filteredMenus.length === 0" class="col-12">
         <div class="empty-box">
           <q-icon name="search_off" size="44px" color="grey-7" />
           <div class="text-grey-5 q-mt-sm">Menu tidak ditemukan</div>
@@ -355,12 +379,12 @@ const metodeBayarOptions = ['CASH', 'QRIS', 'TRANSFER']
 //   items: [],
 // })
 const form = penjualanStore.form
-const angkringanOptions = computed(() =>
-  angkringanStore.items.map((item) => ({
-    label: item.name,
-    value: item.id,
-  })),
-)
+// const angkringanOptions = computed(() =>
+//   angkringanStore.items.map((item) => ({
+//     label: item.name,
+//     value: item.id,
+//   })),
+// )
 
 const kategoriOptions = computed(() => {
   return [
@@ -525,16 +549,10 @@ function formatRupiah(value) {
 }
 
 onMounted(async () => {
-  console.log('sasa')
-  if (!menuStore.items.length) {
-    await menuStore.getItems()
-  }
-
   if (!angkringanStore.items.length) {
     await angkringanStore.getItems()
   }
-  console.log('MENU ITEMS:', menuStore.items)
-  console.log('KATEGORI:', kategoriOptions.value)
+
   setEditData()
 })
 </script>

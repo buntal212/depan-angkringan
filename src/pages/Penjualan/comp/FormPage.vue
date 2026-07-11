@@ -109,11 +109,11 @@
         <q-chip
           v-for="kat in ['Semua', ...kategoriOptions]"
           :key="kat"
-          :color="selectedKategori === kat ? 'amber' : 'dark'"
-          :text-color="selectedKategori === kat ? 'black' : 'amber'"
-          :outline="selectedKategori !== kat"
-          class="category-chip text-weight-bold cursor-pointer"
           clickable
+          :class="[
+            'category-chip',
+            selectedKategori === kat ? 'category-chip--active' : 'category-chip--inactive',
+          ]"
           @click="selectedKategori = kat"
         >
           {{ kat }}
@@ -549,5 +549,28 @@ onMounted(async () => {
   text-align: center;
   font-weight: bold;
   color: #ffc107;
+}
+
+.category-chip {
+  transition: all 0.2s ease;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.category-chip--active {
+  background: #ffd54f !important; /* lebih terang dari amber */
+  color: #000 !important;
+  border: 1px solid #ffc107 !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.45);
+}
+
+.category-chip--inactive {
+  background: #2d2d2d !important;
+  color: #ffc107 !important;
+  border: 1px solid #ffc107 !important;
+}
+
+.category-chip--inactive:hover {
+  background: #3a3a3a !important;
 }
 </style>

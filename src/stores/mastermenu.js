@@ -23,11 +23,8 @@ export const useMasterMenu = defineStore('master-menu-store', {
       try {
         const res = await api.get('/master-menu', this.paramsangkringan)
 
-        const payload = res.data.data ?? res.data
+        const payload = res.data
         const rows = payload.data || []
-
-        console.log('PARAMS:', this.paramsangkringan)
-        console.log('PAYLOAD:', payload)
 
         if (rows.length === 0) {
           this.done = true
@@ -40,8 +37,7 @@ export const useMasterMenu = defineStore('master-menu-store', {
         this.items.push(...newRows)
 
         if (payload.next_page_url) {
-          this.paramsangkringan.page =
-            Number(payload.current_page || this.paramsangkringan.page) + 1
+          this.paramsangkringan.page = Number(payload.current_page || 1) + 1
         } else {
           this.done = true
         }
@@ -51,10 +47,10 @@ export const useMasterMenu = defineStore('master-menu-store', {
         this.loading = false
       }
     },
-
     resetData() {
       this.items = []
       this.done = false
+      this.loading = false
 
       // this.paramsangkringan.page = 1
     },

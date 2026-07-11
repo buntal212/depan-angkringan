@@ -7,12 +7,13 @@
 </template>
 
 <script setup>
+import { useMasterMenu } from 'src/stores/mastermenu.js'
 import { usePenjualanStore } from 'src/stores/penjualan.js'
 import { defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 const ListPenjualanPage = defineAsyncComponent(() => import('./comp/ListPenjualanPage.vue'))
 const FormPage = defineAsyncComponent(() => import('./comp/FormPage.vue'))
-
+const menuStore = useMasterMenu()
 const isList = ref(true)
 const store = usePenjualanStore()
 const router = useRouter()
@@ -40,6 +41,11 @@ const userId = Number(userData.id || 0)
 
 onMounted(async () => {
   store.form.kode_angkringan = userId
+  menuStore.resetData()
+  menuStore.paramsangkringan.per_page = 200
+  menuStore.paramsangkringan.filterAngkringanId = userId
+
+  await menuStore.getItems()
 })
 </script>
 

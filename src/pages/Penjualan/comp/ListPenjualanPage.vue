@@ -120,7 +120,7 @@
             </q-input>
           </div>
 
-          <div v-if="isSuperAdmin" class="col-12 col-md-3">
+          <!-- <div v-if="isSuperAdmin" class="col-12 col-md-3">
             <q-select
               v-model="store.paramsList.angkringan_id"
               :options="angkringanOptions"
@@ -138,7 +138,7 @@
                 <q-icon name="storefront" color="amber" />
               </template>
             </q-select>
-          </div>
+          </div> -->
 
           <div class="col-auto flex q-gutter-sm">
             <q-btn
@@ -355,7 +355,7 @@
             outlined
             rounded
             dense
-            type="number"
+            type="text"
             label="Nominal Dibayar"
             class="q-mt-md"
             @update:model-value="updateNominal"
@@ -436,24 +436,24 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { usePenjualanStore } from 'src/stores/penjualan'
-import { useMasterAngkringan } from 'src/stores/masterangkringan'
+// import { useMasterAngkringan } from 'src/stores/masterangkringan'
 
 const emit = defineEmits(['add', 'edit', 'back'])
 const store = usePenjualanStore()
-const angkringanStore = useMasterAngkringan()
+// const angkringanStore = useMasterAngkringan()
 
-const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
-const userId = Number(userData.id || 0)
-const isSuperAdmin = computed(() => userId === 1)
+// const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
+// const userId = Number(userData.id || 0)
+// const isSuperAdmin = computed(() => userId === 1)
 
-const angkringanOptions = computed(() =>
-  angkringanStore.items.map((item) => ({
-    label: item.name,
-    value: item.id,
-  })),
-)
+// const angkringanOptions = computed(() =>
+//   angkringanStore.items.map((item) => ({
+//     label: item.name,
+//     value: item.id,
+//   })),
+// )
 
 function label(val) {
   if (val == '1') {
@@ -500,9 +500,9 @@ function onSlideEdit(item, reset) {
   emit('edit', item)
 }
 
-async function caribyangkringan() {
-  await store.reloadListPenjualan()
-}
+// async function caribyangkringan() {
+//   await store.reloadListPenjualan()
+// }
 
 function onSlideBayar(item, reset) {
   reset()
@@ -542,15 +542,15 @@ async function onDateFromChange() {
 }
 
 onMounted(async () => {
-  if (isSuperAdmin.value) {
-    store.paramsList.angkringan_id = null
-  } else {
-    store.paramsList.angkringan_id = userId
-  }
+  // if (isSuperAdmin.value) {
+  //   store.paramsList.angkringan_id = null
+  // } else {
+  //   store.paramsList.angkringan_id = userId
+  // }
 
-  if (!angkringanStore.items.length) {
-    await angkringanStore.getItems()
-  }
+  // if (!angkringanStore.items.length) {
+  //   await angkringanStore.getItems()
+  // }
 
   await store.reloadListPenjualan()
 })
