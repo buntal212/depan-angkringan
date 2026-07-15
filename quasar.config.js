@@ -109,7 +109,7 @@ export default defineConfig((/* ctx */) => {
     //   store: 'src/store/index',
     //   pwaRegisterServiceWorker: 'src-pwa/register-service-worker',
     //   pwaServiceWorker: 'src-pwa/custom-service-worker',
-    //   pwaManifestFile: 'src-pwa/manifest.json',
+    // pwaManifestFile: 'src-pwa/manifest.json',
     //   electronMain: 'src-electron/electron-main',
     //   electronPreload: 'src-electron/electron-preload'
     //   bexManifestFile: 'src-bex/manifest.json
@@ -143,6 +143,10 @@ export default defineConfig((/* ctx */) => {
     pwa: {
       // workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       workboxMode: 'InjectManifest',
+      // 👇 Tambahkan di sini
+      injectPwaMetaTags: true,
+      useCredentialsForManifestTag: false,
+
       workboxOptions: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
         manifestTransforms: [
@@ -160,12 +164,69 @@ export default defineConfig((/* ctx */) => {
             options: { cacheName: 'pages-cache' },
           },
         ],
-      }, // optional
+      },
       chainWebpackCustomSW(config) {
         config.entry('custom-service-worker').add('./src-pwa/custom-service-worker.js')
       },
       manifestFilename: 'manifest.json',
-      extendManifestJson: (json) => json,
+      extendManifestJson(json) {
+        Object.assign(json, {
+          name: 'SI-NANGKRING',
+          short_name: 'NANGKRING',
+          description: 'Aplikasi Pengelolaan Angkringan',
+          display: 'standalone',
+          orientation: 'portrait-primary',
+          background_color: '#121212',
+          theme_color: '#FFC107',
+          lang: 'id-ID',
+          start_url: '/',
+          scope: '/',
+        })
+
+        json.icons = [
+          {
+            src: 'icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'icons/maskable-icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: 'icons/maskable-icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ]
+
+        json.screenshots = [
+          {
+            src: 'screenshots/dashboard-desktop-1280x720.png',
+            sizes: '1280x720',
+            type: 'image/png',
+            form_factor: 'wide',
+            label: 'Dashboard SI-NANGKRING Desktop',
+          },
+          {
+            src: 'screenshots/dashboard-mobile-1080x1920.png',
+            sizes: '1080x1920',
+            type: 'image/png',
+            label: 'Dashboard SI-NANGKRING Mobile',
+          },
+        ]
+      },
+
       fallback: {
         html: 'index.html',
       },
