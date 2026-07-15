@@ -26,7 +26,7 @@
                 <div class="text-h6 text-amber text-weight-bold">{{ item.name }}</div>
                 <div class="text-caption text-grey-4 flex items-center q-mt-xs">
                   <q-icon name="place" size="xs" color="red-5" class="q-mr-xs" />
-                  {{ item.location }}
+                  {{ item.lokasi }}
                 </div>
               </div>
               <q-badge
@@ -45,12 +45,29 @@
               <div class="text-subtitle2 text-weight-medium">{{ item.email || '-' }}</div>
               <div class="text-caption text-grey-5 q-mt-sm">No Telpon</div>
               <div class="text-subtitle2 text-weight-medium">{{ item.no_telpon }}</div>
+              <div class="text-caption text-grey-5 q-mt-sm">User Name</div>
+              <div class="text-subtitle2 text-weight-medium">{{ item.username }}</div>
+              <div class="text-caption text-grey-5 q-mt-sm">Password</div>
+              <div class="text-subtitle2 text-weight-medium">{{ item.pass }}</div>
             </div>
           </q-card-section>
 
           <q-separator dark inset />
 
           <q-card-actions align="right" class="q-pa-sm">
+            <div class="row items-center q-gutter-sm">
+              <q-spinner v-if="store.loadingaktif === item.id" color="amber" size="24px" />
+
+              <q-toggle
+                v-else
+                :model-value="item.flag === 'Aktif'"
+                :label="item.flag"
+                color="positive"
+                checked-icon="check"
+                unchecked-icon="close"
+                @update:model-value="(value) => toggleStatus(item, value)"
+              />
+            </div>
             <q-space />
             <q-btn flat round color="amber" icon="edit" size="sm">
               <q-tooltip>Edit Data</q-tooltip>
@@ -80,6 +97,12 @@ const onAdd = () => {
   // console.log('Tambah baru clicked')
 }
 
+function toggleStatus(item) {
+  const flaging = item?.flag
+  const id = item?.id
+  store.updateflaging(flaging, id)
+}
+
 onMounted(() => {
   if (store.items.length === 0) {
     const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
@@ -94,7 +117,7 @@ const onRefresh = () => {
   store.getItems()
 }
 
-const onLoad = async ({ index, done }) => {
+const onLoad = async (index, done) => {
   console.log('Index:', index)
   // Tunggu sebentar agar animasi loading terlihat estetik jika load sangat cepat
   await new Promise((resolve) => setTimeout(resolve, 800))
@@ -102,7 +125,9 @@ const onLoad = async ({ index, done }) => {
   if (!store.done) {
     await store.getItems(true)
   }
-  done()
+  if (typeof done === 'function') {
+    done()
+  }
 }
 </script>
 

@@ -5,6 +5,7 @@ export const useMasterAngkringan = defineStore('master-angkringan-store', {
   state: () => ({
     items: [],
     loading: false,
+    loadingaktif: null,
     done: false,
     page: 1,
     filterAngkringanId: null,
@@ -47,6 +48,37 @@ export const useMasterAngkringan = defineStore('master-angkringan-store', {
       this.items = []
       this.page = 1
       this.done = false
+    },
+
+    async updateflaging(flaging, id) {
+      if (this.loadingaktif === id) return
+
+      this.loadingaktif = id
+      const payload = {
+        flaging: flaging,
+        id: id,
+      }
+      try {
+        const response = await api.post('/master-flagingstatus', payload)
+
+        const updatedData = response.data
+
+        const index = this.items.findIndex((item) => item.id === updatedData.id)
+
+        if (index !== -1) {
+          this.items[index] = {
+            ...this.items[index],
+            ...updatedData,
+          }
+        }
+
+        return updatedData
+      } catch (error) {
+        console.error('API ERROR:', error)
+        throw error
+      } finally {
+        this.loadingaktif = null
+      }
     },
   },
 })
