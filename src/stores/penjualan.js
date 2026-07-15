@@ -182,7 +182,6 @@ export const usePenjualanStore = defineStore('penjualan', {
           page: this.paginationPenjualan.page,
           per_page: this.paginationPenjualan.per_page,
           search: this.paramsList.search || undefined,
-          // dateFrom: this.paramsList.dateFrom || undefined,
           dateFrom: this.paramsList.dateFrom || undefined,
           dateTo: this.paramsList.dateTo || undefined,
           angkringan_id: this.paramsList.angkringan_id || undefined,

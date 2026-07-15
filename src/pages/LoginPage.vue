@@ -187,6 +187,8 @@ const onSubmit = async () => {
     // Call store getMenus after successful login
     successLoading.value = true
     const menuStore = useMenuStore()
+    const user = JSON.parse(localStorage.getItem('user_data'))
+    menuStore.user = user.id
 
     // Delay estetik agar loading screen terlihat menarik
     await new Promise((resolve) => setTimeout(resolve, 1500))

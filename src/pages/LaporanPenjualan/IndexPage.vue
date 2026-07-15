@@ -549,6 +549,11 @@ function exportPdf() {
 }
 
 onMounted(async () => {
+  const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
+  const userId = Number(userData.id || 0)
+
+  store.filters.userAngkringanId = userId
+  //console.log('sasaasasa', store.filters.userAngkringanId)
   if (store.loadUserOutletFromStorage()) {
     await store.fetchLaporanPenjualan()
   }

@@ -25,7 +25,7 @@
       </div>
       <q-separator dark />
       <q-list class="q-mt-sm">
-        <q-item clickable v-ripple class="text-red-4" @click="$router.push('/login')">
+        <q-item clickable v-ripple class="text-red-4" @click="logout">
           <q-item-section avatar>
             <q-icon name="logout" color="red-4" />
           </q-item-section>
@@ -44,11 +44,25 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const leftDrawerOpen = ref(false)
+const router = useRouter()
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
+function logout() {
+  // hapus data login
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('user_data')
+
+  // jika ada data lain
+  // localStorage.removeItem('menu')
+  // localStorage.removeItem('permissions')
+
+  router.replace('/login')
 }
 </script>
 

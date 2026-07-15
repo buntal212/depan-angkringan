@@ -13,6 +13,7 @@ const initialFilters = () => {
   return {
     dateFrom: formatDate(new Date(now.getFullYear(), now.getMonth(), 1)),
     dateTo: formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+    userAngkringanId: null,
     paymentMethod: null,
     paymentStatus: null,
   }
@@ -112,10 +113,10 @@ export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
       if (this.loading) return
       this.error = null
 
-      if (!this.isSuperAdmin && !this.userAngkringanId) {
-        this.error = 'Data outlet pengguna tidak ditemukan. Silakan login ulang.'
-        return
-      }
+      // if (!this.isSuperAdmin && !this.userAngkringanId) {
+      //   this.error = 'Data outlet pengguna tidak ditemukan. Silakan login ulang.'
+      //   return
+      // }
 
       this.loading = true
 
@@ -124,7 +125,7 @@ export const useLaporanPenjualanStore = defineStore('laporan-penjualan', {
           params: {
             dateFrom: this.filters.dateFrom || undefined,
             dateTo: this.filters.dateTo || undefined,
-            angkringan_id: this.isSuperAdmin ? undefined : this.userAngkringanId,
+            angkringan_id: this.filters.userAngkringanId,
             metode_bayar: this.filters.paymentMethod || undefined,
             flag:
               this.filters.paymentStatus !== '' && this.filters.paymentStatus !== null

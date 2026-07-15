@@ -40,7 +40,9 @@ const userData = JSON.parse(localStorage.getItem('user_data') || '{}')
 const userId = Number(userData.id || 0)
 
 onMounted(async () => {
+  console.log('sasa', userId)
   store.form.kode_angkringan = userId
+  store.paramsList.angkringan_id = userId
   menuStore.resetData()
   menuStore.paramsangkringan.per_page = 200
   menuStore.paramsangkringan.filterAngkringanId = userId
