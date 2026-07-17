@@ -180,6 +180,10 @@ const onSubmit = async () => {
         localStorage.setItem('user_data', JSON.stringify(response.data.user))
       }
 
+      if (response.data.expires_at) {
+        localStorage.setItem('token_expires_at', JSON.stringify(response.data.expires_at))
+      }
+
       // 🔥 WAJIB
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
     }

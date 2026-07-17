@@ -35,21 +35,34 @@ export default defineRouter((/* { store, ssrContext } */) => {
 
   Router.beforeEach((to) => {
     const token = localStorage.getItem('auth_token')
+    const expiresAt = localStorage.getItem('token_expires_at')
 
     const publicPages = ['/login', '/register']
     const isPublic = publicPages.includes(to.path)
 
-    // ❌ belum login → paksa ke login
+    // Cek apakah token sudah expired
+    const isExpired = expiresAt && new Date().getTime() >= new Date(expiresAt).getTime()
+
+    // Token expired → hapus semua data login
+    if (token && isExpired) {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('token_expires_at')
+      localStorage.removeItem('user_data')
+
+      return '/login'
+    }
+
+    // Belum login → paksa ke login
     if (!isPublic && !token) {
       return '/login'
     }
 
-    // 🔁 sudah login tapi buka login lagi
-    if (to.path === '/login' && token) {
+    // Sudah login tetapi membuka login/register
+    if (isPublic && token && !isExpired) {
       return '/'
     }
 
-    // ✅ lanjutkan normal
+    // Lanjutkan normal
     return true
   })
 

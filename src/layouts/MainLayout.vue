@@ -57,6 +57,7 @@ function logout() {
   // hapus data login
   localStorage.removeItem('auth_token')
   localStorage.removeItem('user_data')
+  localStorage.removeItem('token_expires_at')
 
   // jika ada data lain
   // localStorage.removeItem('menu')
