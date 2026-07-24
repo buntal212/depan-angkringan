@@ -45,6 +45,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { clearAuthSession } from 'src/utils/authSession'
 
 const leftDrawerOpen = ref(false)
 const router = useRouter()
@@ -54,15 +55,7 @@ function toggleLeftDrawer() {
 }
 
 function logout() {
-  // hapus data login
-  localStorage.removeItem('auth_token')
-  localStorage.removeItem('user_data')
-  localStorage.removeItem('token_expires_at')
-
-  // jika ada data lain
-  // localStorage.removeItem('menu')
-  // localStorage.removeItem('permissions')
-
+  clearAuthSession()
   router.replace('/login')
 }
 </script>

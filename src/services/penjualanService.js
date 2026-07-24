@@ -1,11 +1,12 @@
 import axios from 'axios'
+import { clearAuthSession } from 'src/utils/authSession'
 
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })
 
 // Request interceptor to add auth token
@@ -19,7 +20,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 // Response interceptor to handle errors
@@ -28,11 +29,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem('auth_token')
-      window.location.href = '/login'
+      clearAuthSession()
+      window.location.replace('/login')
     }
     return Promise.reject(error)
-  }
+  },
 )
 
 export const penjualanService = {
@@ -90,7 +91,7 @@ export const penjualanService = {
   getTransactionsByDateRange: async (startDate, endDate) => {
     try {
       const response = await api.get('/penjualan/range', {
-        params: { startDate, endDate }
+        params: { startDate, endDate },
       })
       return response.data
     } catch (error) {
@@ -102,7 +103,7 @@ export const penjualanService = {
   getDailySummary: async (date) => {
     try {
       const response = await api.get('/penjualan/summary/daily', {
-        params: { date }
+        params: { date },
       })
       return response.data
     } catch (error) {
@@ -114,7 +115,7 @@ export const penjualanService = {
   getMonthlySummary: async (year, month) => {
     try {
       const response = await api.get('/penjualan/summary/monthly', {
-        params: { year, month }
+        params: { year, month },
       })
       return response.data
     } catch (error) {
@@ -126,7 +127,7 @@ export const penjualanService = {
   generateReport: async (filters = {}) => {
     try {
       const response = await api.post('/penjualan/report', filters, {
-        responseType: 'blob'
+        responseType: 'blob',
       })
       return response
     } catch (error) {
@@ -138,13 +139,13 @@ export const penjualanService = {
   getTopSellingItems: async (limit = 10) => {
     try {
       const response = await api.get('/penjualan/top-items', {
-        params: { limit }
+        params: { limit },
       })
       return response.data
     } catch (error) {
       throw error.response?.data || error
     }
-  }
+  },
 }
 
 export default api

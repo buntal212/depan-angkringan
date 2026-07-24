@@ -181,11 +181,14 @@ const onSubmit = async () => {
       }
 
       if (response.data.expires_at) {
-        localStorage.setItem('token_expires_at', JSON.stringify(response.data.expires_at))
+        localStorage.setItem('token_expires_at', String(response.data.expires_at))
+      } else {
+        localStorage.removeItem('token_expires_at')
       }
 
       // 🔥 WAJIB
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      window.dispatchEvent(new Event('auth:login'))
     }
 
     // Call store getMenus after successful login

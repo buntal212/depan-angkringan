@@ -5,6 +5,7 @@ import {
   createWebHistory,
   createWebHashHistory,
 } from 'vue-router'
+import { clearAuthSession, isTokenExpired } from 'src/utils/authSession'
 import routes from './routes'
 
 /*
@@ -35,34 +36,23 @@ export default defineRouter((/* { store, ssrContext } */) => {
 
   Router.beforeEach((to) => {
     const token = localStorage.getItem('auth_token')
-    const expiresAt = localStorage.getItem('token_expires_at')
-
     const publicPages = ['/login', '/register']
     const isPublic = publicPages.includes(to.path)
+    const isExpired = isTokenExpired()
 
-    // Cek apakah token sudah expired
-    const isExpired = expiresAt && new Date().getTime() >= new Date(expiresAt).getTime()
-
-    // Token expired → hapus semua data login
     if (token && isExpired) {
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('token_expires_at')
-      localStorage.removeItem('user_data')
-
+      clearAuthSession()
       return '/login'
     }
 
-    // Belum login → paksa ke login
     if (!isPublic && !token) {
       return '/login'
     }
 
-    // Sudah login tetapi membuka login/register
     if (isPublic && token && !isExpired) {
       return '/'
     }
 
-    // Lanjutkan normal
     return true
   })
 

@@ -1,5 +1,6 @@
 import { boot } from 'quasar/wrappers'
 import axios from 'axios'
+import { clearAuthSession } from 'src/utils/authSession'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -23,6 +24,19 @@ export default boot(({ app }) => {
 
     return config
   })
+
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401 && localStorage.getItem('auth_token')) {
+        clearAuthSession()
+        console.info('[Auth Session]', 'Logout otomatis: sesi ditolak oleh server.')
+        window.location.replace('/login')
+      }
+
+      return Promise.reject(error)
+    },
+  )
 
   app.config.globalProperties.$axios = axios
   app.config.globalProperties.$api = api
