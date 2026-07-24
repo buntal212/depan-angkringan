@@ -3,15 +3,25 @@
 
 import { clientsClaim } from 'workbox-core'
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
+import {
+  cleanupOutdatedCaches,
+  createHandlerBoundToURL,
+  precacheAndRoute,
+} from 'workbox-precaching'
 
-import { registerRoute } from 'workbox-routing'
+import { NavigationRoute, registerRoute } from 'workbox-routing'
 
 import { NetworkFirst, CacheFirst } from 'workbox-strategies'
 
 import { ExpirationPlugin } from 'workbox-expiration'
 
-const CACHE_VERSION = 'v1.0.0'
+const CACHE_VERSION = 'v2.0.0'
+const API_CACHE = `api-cache-${CACHE_VERSION}`
+const IMAGE_CACHE = `image-cache-${CACHE_VERSION}`
+const FONT_CACHE = `font-cache-${CACHE_VERSION}`
+const STATIC_ASSETS_CACHE = `static-assets-cache-${CACHE_VERSION}`
+const CURRENT_RUNTIME_CACHES = new Set([API_CACHE, IMAGE_CACHE, FONT_CACHE, STATIC_ASSETS_CACHE])
+const RUNTIME_CACHE_PREFIXES = ['api-cache-', 'image-cache-', 'font-cache-', 'static-assets-cache-']
 
 // ----------------------
 // Service Worker Setup
@@ -23,25 +33,36 @@ clientsClaim()
 // ----------------------
 // Precache
 // ----------------------
-precacheAndRoute(self.__WB_MANIFEST || [])
+precacheAndRoute(self.__WB_MANIFEST)
 
 cleanupOutdatedCaches()
 
 // ----------------------
+// Runtime Cache Cleanup
+// ----------------------
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames
+          .filter(
+            (cacheName) =>
+              RUNTIME_CACHE_PREFIXES.some((prefix) => cacheName.startsWith(prefix)) &&
+              !CURRENT_RUNTIME_CACHES.has(cacheName),
+          )
+          .map((cacheName) => {
+            console.info('[PWA Update]', `Menghapus runtime cache lama: ${cacheName}`)
+            return caches.delete(cacheName)
+          }),
+      ),
+    ),
+  )
+})
+
+// ----------------------
 // SPA Fallback
 // ----------------------
-registerRoute(
-  ({ request }) => request.mode === 'navigate',
-
-  async () => {
-    try {
-      return await fetch('/')
-      // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-      return await caches.match('/')
-    }
-  },
-)
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
 
 // ----------------------
 // API CACHE
@@ -50,7 +71,7 @@ registerRoute(
   ({ url }) => url.pathname.startsWith('/api/'),
 
   new NetworkFirst({
-    cacheName: `api-cache-${CACHE_VERSION}`,
+    cacheName: API_CACHE,
 
     networkTimeoutSeconds: 5,
 
@@ -70,7 +91,7 @@ registerRoute(
   ({ request }) => request.destination === 'image',
 
   new CacheFirst({
-    cacheName: `image-cache-${CACHE_VERSION}`,
+    cacheName: IMAGE_CACHE,
 
     plugins: [
       new ExpirationPlugin({
@@ -91,7 +112,7 @@ registerRoute(
     url.origin.includes('fonts.gstatic.com'),
 
   new CacheFirst({
-    cacheName: `font-cache-${CACHE_VERSION}`,
+    cacheName: FONT_CACHE,
 
     plugins: [
       new ExpirationPlugin({
@@ -109,7 +130,7 @@ registerRoute(
   ({ request }) => request.destination === 'style' || request.destination === 'script',
 
   new NetworkFirst({
-    cacheName: `static-assets-cache-${CACHE_VERSION}`,
+    cacheName: STATIC_ASSETS_CACHE,
 
     plugins: [
       new ExpirationPlugin({

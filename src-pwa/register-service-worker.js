@@ -1,5 +1,7 @@
 import { register } from 'register-service-worker'
 
+const LOG_PREFIX = '[PWA Update]'
+
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
@@ -11,31 +13,34 @@ register(process.env.SERVICE_WORKER_FILE, {
 
   // registrationOptions: { scope: './' },
 
-  ready (/* registration */) {
-    // console.log('Service worker is active.')
+  ready(registration) {
+    console.info(LOG_PREFIX, 'Service Worker aktif dan siap digunakan.')
+    window.dispatchEvent(new CustomEvent('pwa:registered', { detail: registration }))
   },
 
-  registered (/* registration */) {
-    // console.log('Service worker has been registered.')
+  registered(registration) {
+    console.info(LOG_PREFIX, 'Service Worker berhasil didaftarkan.')
+    window.dispatchEvent(new CustomEvent('pwa:registered', { detail: registration }))
   },
 
-  cached (/* registration */) {
-    // console.log('Content has been cached for offline use.')
+  cached(/* registration */) {
+    console.info(LOG_PREFIX, 'Asset aplikasi selesai disimpan untuk penggunaan offline.')
   },
 
-  updatefound (/* registration */) {
-    // console.log('New content is downloading.')
+  updatefound(/* registration */) {
+    console.info(LOG_PREFIX, 'Versi baru ditemukan dan sedang diunduh.')
   },
 
-  updated (/* registration */) {
-    // console.log('New content is available; please refresh.')
+  updated(registration) {
+    console.info(LOG_PREFIX, 'Versi baru selesai dipasang dan siap diaktifkan.')
+    window.dispatchEvent(new CustomEvent('pwa:updated', { detail: registration }))
   },
 
-  offline () {
-    // console.log('No internet connection found. App is running in offline mode.')
+  offline() {
+    console.warn(LOG_PREFIX, 'Tidak ada koneksi internet. Aplikasi berjalan dalam mode offline.')
   },
 
-  error (/* err */) {
-    // console.error('Error during service worker registration:', err)
-  }
+  error(err) {
+    console.error(LOG_PREFIX, 'Registrasi atau pembaruan Service Worker gagal:', err)
+  },
 })

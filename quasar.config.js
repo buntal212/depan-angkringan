@@ -157,75 +157,8 @@ export default defineConfig((/* ctx */) => {
             return { manifest: unique }
           },
         ],
-        runtimeCaching: [
-          {
-            urlPattern: /\/.*/,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'pages-cache' },
-          },
-        ],
-      },
-      chainWebpackCustomSW(config) {
-        config.entry('custom-service-worker').add('./src-pwa/custom-service-worker.js')
       },
       manifestFilename: 'manifest.json',
-      extendManifestJson(json) {
-        Object.assign(json, {
-          name: 'SI-NANGKRING',
-          short_name: 'NANGKRING',
-          description: 'Aplikasi Pengelolaan Angkringan',
-          display: 'standalone',
-          orientation: 'portrait-primary',
-          background_color: '#121212',
-          theme_color: '#FFC107',
-          lang: 'id-ID',
-          start_url: '/',
-          scope: '/',
-        })
-
-        json.icons = [
-          {
-            src: 'icons/icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: 'icons/icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: 'icons/maskable-icon-192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-          {
-            src: 'icons/maskable-icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
-        ]
-
-        json.screenshots = [
-          {
-            src: 'screenshots/dashboard-desktop-1280x720.png',
-            sizes: '1280x720',
-            type: 'image/png',
-            form_factor: 'wide',
-            label: 'Dashboard SI-NANGKRING Desktop',
-          },
-          {
-            src: 'screenshots/dashboard-mobile-1080x1920.png',
-            sizes: '1080x1920',
-            type: 'image/png',
-            label: 'Dashboard SI-NANGKRING Mobile',
-          },
-        ]
-      },
 
       fallback: {
         html: 'index.html',

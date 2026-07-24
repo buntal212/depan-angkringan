@@ -6,6 +6,10 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       {
+        path: 'profil',
+        component: () => import('pages/Profil/IndexPages.vue'),
+      },
+      {
         path: 'master-angkringan',
         component: () => import('pages/Master/MasterAngkringanPage.vue'),
       },
